@@ -34,4 +34,6 @@ package object libpng {
     bool(lib.png_sig_cmp(a, 0.toUInt, count.toUInt))
   }
 
+  def PNG_LIBPNG_VER_STRING: String = fromCString(lib.PNG_LIBPNG_VER_STRING)
+
 }

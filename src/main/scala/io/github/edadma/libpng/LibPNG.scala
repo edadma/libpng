@@ -13,4 +13,7 @@ object LibPNG {
 
   def png_sig_cmp(sig: png_const_bytep, start: CSize, num_to_check: CSize): CInt = extern
 
+  @name("png_PNG_LIBPNG_VER_STRING")
+  def PNG_LIBPNG_VER_STRING: CString = extern
+
 }
