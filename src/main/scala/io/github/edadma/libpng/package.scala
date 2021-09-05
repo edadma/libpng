@@ -8,15 +8,13 @@ import scala.scalanative.unsigned._
 
 package object libpng {
 
-  private def copy(src: collection.Seq[Byte], dst: Ptr[Byte], count: UInt): Unit = {
+  private def copy(src: collection.Seq[Byte], dst: Ptr[Byte], count: UInt): Unit =
     for (i <- 0 until count.toInt)
       dst(i) = src(i)
-  }
 
-  private def copy(src: Ptr[Byte], dst: mutable.Seq[Byte], count: Int): Unit = {
+  private def copy(src: Ptr[Byte], dst: mutable.Seq[Byte], count: Int): Unit =
     for (i <- 0 until count)
       dst(i) = src(i)
-  }
 
   private def bool(a: CInt): Boolean = if (a == 0) false else true
 
