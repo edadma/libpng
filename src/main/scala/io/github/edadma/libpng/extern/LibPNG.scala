@@ -1,6 +1,6 @@
-package io.github.edadma.libpng
+package io.github.edadma.libpng.extern
 
-import scala.scalanative.libc.stdio
+import scala.scalanative.libc.stdio._
 import scala.scalanative.unsafe._
 
 @link("png")
@@ -19,7 +19,7 @@ object LibPNG {
   type png_error_ptr      = CFuncPtr2[png_structp, png_const_charp, Unit]
   type png_info           = CStruct0
   type png_infop          = Ptr[png_info]
-  type png_FILE_p         = Ptr[stdio.FILE]
+  type png_FILE_p         = Ptr[FILE]
 
   def png_access_version_number: CUnsignedLong = extern
 

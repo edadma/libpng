@@ -1,10 +1,9 @@
 package io.github.edadma
 
-import io.github.edadma.libpng.{LibPNG => lib}
+import io.github.edadma.libpng.extern.{LibPNG => lib}
 
 import scala.collection.mutable
-
-import scala.scalanative.libc.stdio
+import scala.scalanative.libc.stdio._
 import scala.scalanative.unsafe._
 import scala.scalanative.unsigned._
 
@@ -18,8 +17,8 @@ package object libpng {
     //
   }
 
-  implicit class FILE private[libpng] (val file: lib.png_FILE_p) extends AnyVal {
-    def close(): Unit = stdio.fclose(file)
+  implicit class PNGFILE private[libpng] (val file: lib.png_FILE_p) extends AnyVal {
+    def close(): Unit = fclose(file)
   }
 
   private def copy(src: collection.Seq[Byte], dst: Ptr[Byte], count: UInt): Unit =
@@ -51,7 +50,7 @@ package object libpng {
 
   // convenience methods
 
-  def open(path: String): (PNG, Info, FILE) = {
+  def open(path: String): (PNG, Info, PNGFILE) = {
     null
   }
 
