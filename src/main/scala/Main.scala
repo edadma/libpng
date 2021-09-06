@@ -13,20 +13,33 @@ object Main extends App {
   val info = png.create_info_struct getOrElse error("create_info_struct failed")
 
   if (png.setjmp) error("error during init_io")
-  png.init_io(file)
 
+  png.init_io(file)
   png.set_sig_bytes(8)
   png.read_info(info)
 
-  val width            = png.get_image_width(info)
-  val height           = png.get_image_height(info)
   val color_type       = png.get_color_type(info)
   val bit_depth        = png.get_bit_depth(info)
   val number_of_passes = png.set_interlace_handling
 
   png.read_update_info(info)
 
-  val row_pointers = stdlib.malloc(sizeof[lib.png_bytep] * height).asInstanceOf[lib.png_bytepp]
+  val (width, height, b, c, _, _, _) = png.get_IHDR(info)
+  val format =
+    c match {
+      case `COLOR_TYPE_GRAY`       => ImageFormat.GRAY
+      case `COLOR_TYPE_GRAY_ALPHA` => ImageFormat.GRAY_ALPHA
+      case `COLOR_TYPE_RGB`        => ImageFormat.RGB
+      case `COLOR_TYPE_RGB_ALPHA`  => ImageFormat.RGB_ALPHA
+    }
+
+  val image        = stdlib.malloc((width * height * format.typ).toULong).asInstanceOf[lib.png_bytep]
+  val row_pointers = stdlib.malloc(sizeof[lib.png_bytep] * height.toULong).asInstanceOf[lib.png_bytepp]
+
+  for (i <- 0 until height)
+    row_pointers(i) = image + ((height - (i + 1)) * width * format.typ)
+
+  lib.png_read_image(png.ptr, row_pointers)
 
   file.close()
 

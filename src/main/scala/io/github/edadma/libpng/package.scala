@@ -32,6 +32,33 @@ package object libpng {
     def get_image_height(info: Info): Int     = lib.png_get_image_height(ptr, info.ptr).toInt
     def get_bit_depth(info: Info): Int        = lib.png_get_bit_depth(ptr, info.ptr).toInt
     def get_color_type(info: Info): ColorType = lib.png_get_color_type(ptr, info.ptr)
+    def get_IHDR(info: Info): (Int, Int, Int, ColorType, Int, Int, Int) = {
+      val width              = stackalloc[CUnsignedInt]
+      val height             = stackalloc[CUnsignedInt]
+      val bit_depth          = stackalloc[CInt]
+      val color_type         = stackalloc[CInt]
+      val interlace_method   = stackalloc[CInt]
+      val compression_method = stackalloc[CInt]
+      val filter_method      = stackalloc[CInt]
+
+      lib.png_get_IHDR(ptr,
+                       info.ptr,
+                       width,
+                       height,
+                       bit_depth,
+                       color_type,
+                       interlace_method,
+                       compression_method,
+                       filter_method)
+
+      ((!width).toInt,
+       (!height).toInt,
+       !bit_depth,
+       ColorType(!color_type),
+       !interlace_method,
+       !compression_method,
+       !filter_method)
+    }
   }
 
   implicit class Info private[libpng] (val ptr: lib.png_infop) extends AnyVal {
@@ -43,13 +70,13 @@ package object libpng {
   }
 
   implicit class ColorType private[libpng] (val typ: lib.png_byte) extends AnyVal
-  lazy val PNG_COLOR_TYPE_GRAY: ColorType       = ColorType(lib.PNG_COLOR_TYPE_GRAY)
-  lazy val PNG_COLOR_TYPE_PALETTE: ColorType    = ColorType(lib.PNG_COLOR_TYPE_PALETTE)
-  lazy val PNG_COLOR_TYPE_RGB: ColorType        = ColorType(lib.PNG_COLOR_TYPE_RGB)
-  lazy val PNG_COLOR_TYPE_RGB_ALPHA: ColorType  = ColorType(lib.PNG_COLOR_TYPE_RGB_ALPHA)
-  lazy val PNG_COLOR_TYPE_GRAY_ALPHA: ColorType = ColorType(lib.PNG_COLOR_TYPE_GRAY_ALPHA)
-  lazy val PNG_COLOR_TYPE_RGBA: ColorType       = ColorType(lib.PNG_COLOR_TYPE_RGBA)
-  lazy val PNG_COLOR_TYPE_GA: ColorType         = ColorType(lib.PNG_COLOR_TYPE_GA)
+  lazy val COLOR_TYPE_GRAY: ColorType       = ColorType(lib.PNG_COLOR_TYPE_GRAY)
+  lazy val COLOR_TYPE_PALETTE: ColorType    = ColorType(lib.PNG_COLOR_TYPE_PALETTE)
+  lazy val COLOR_TYPE_RGB: ColorType        = ColorType(lib.PNG_COLOR_TYPE_RGB)
+  lazy val COLOR_TYPE_RGB_ALPHA: ColorType  = ColorType(lib.PNG_COLOR_TYPE_RGB_ALPHA)
+  lazy val COLOR_TYPE_GRAY_ALPHA: ColorType = ColorType(lib.PNG_COLOR_TYPE_GRAY_ALPHA)
+  lazy val COLOR_TYPE_RGBA: ColorType       = ColorType(lib.PNG_COLOR_TYPE_RGBA)
+  lazy val COLOR_TYPE_GA: ColorType         = ColorType(lib.PNG_COLOR_TYPE_GA)
 
   implicit class ImageFormat private[libpng] (val typ: Int) extends AnyVal
   object ImageFormat {
