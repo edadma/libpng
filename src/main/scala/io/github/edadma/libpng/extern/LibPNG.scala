@@ -8,6 +8,8 @@ import scala.scalanative.unsafe._
 object LibPNG {
 
   type png_byte           = CUnsignedChar
+  type png_bytep          = Ptr[Byte]
+  type png_bytepp         = Ptr[png_bytep]
   type png_const_bytep    = Ptr[Byte]
   type png_uint_32        = CUnsignedInt
   type png_struct         = CStruct0
@@ -33,13 +35,20 @@ object LibPNG {
   def png_create_write_struct(user_png_ver: CString,
                               error_ptr: png_voidp,
                               error_fn: png_error_ptr,
-                              warn_fn: png_error_ptr): png_structp                        = extern
-  def png_get_compression_buffer_size(png_ptr: png_const_structrp): CSize                 = extern
-  def png_set_compression_buffer_size(png_ptr: png_const_structrp, size: CSize): Unit     = extern
-  def png_create_info_struct(png_ptr: png_const_structrp): png_infop                      = extern
-  def png_read_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                     = extern
-  def png_init_io(png_ptr: png_structrp, fp: png_FILE_p): Unit                            = extern
-  def png_get_channels(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte = extern
+                              warn_fn: png_error_ptr): png_structp                               = extern
+  def png_get_compression_buffer_size(png_ptr: png_const_structrp): CSize                        = extern
+  def png_set_compression_buffer_size(png_ptr: png_const_structrp, size: CSize): Unit            = extern
+  def png_create_info_struct(png_ptr: png_const_structrp): png_infop                             = extern
+  def png_read_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                            = extern
+  def png_read_update_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                     = extern
+  def png_set_interlace_handling(png_ptr: png_structrp): CInt                                    = extern
+  def png_read_image(png_ptr: png_structrp, image: png_bytepp): Unit                             = extern
+  def png_init_io(png_ptr: png_structrp, fp: png_FILE_p): Unit                                   = extern
+  def png_get_channels(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte        = extern
+  def png_get_image_width(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32  = extern
+  def png_get_image_height(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32 = extern
+  def png_get_bit_depth(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte       = extern
+  def png_get_color_type(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte      = extern
 
   // header macros
 
