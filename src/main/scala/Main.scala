@@ -8,12 +8,11 @@ import scala.scalanative.libc.stdio._
 object Main extends App {
 
   val file = open("") getOrElse sys.exit(1)
-  val png  = create_read_struct(LIBPNG_VER_STRING) getOrElse sys.exit(1)
+  val png  = create_read_struct(LIBPNG_VER_STRING) getOrElse error("create_read_struct failed")
+  val info = png.create_info_struct getOrElse error("create_info_struct failed")
 
   if (png.setjmp) error("error during init_io")
   png.init_io(file)
-
-  val info = png.create_info_struct getOrElse error("create_info_struct failed")
 
   png.set_sig_bytes(8)
   png.read_info(info)
@@ -32,6 +31,7 @@ object Main extends App {
 
   def error(msg: String): Nothing = {
     Console.err.println(msg)
+    file.close()
     sys.exit(1)
   }
 

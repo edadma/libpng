@@ -22,6 +22,7 @@ object LibPNG {
   type png_error_ptr      = CFuncPtr2[png_structp, png_const_charp, Unit]
   type png_info           = CStruct0
   type png_infop          = Ptr[png_info]
+  type png_infopp         = Ptr[png_infop]
   type png_const_inforp   = Ptr[png_info]
   type png_FILE_p         = Ptr[FILE]
 
@@ -46,6 +47,7 @@ object LibPNG {
   def png_read_image(png_ptr: png_structrp, image: png_bytepp): Unit                             = extern
   def png_write_image(png_ptr: png_structrp, image: png_bytepp): Unit                            = extern
   def png_write_end(png_ptr: png_structrp, info_ptr: png_infop): Unit                            = extern
+  def png_destroy_read_struct(png_ptr: png_structpp, info_ptr: png_infopp): Unit                 = extern
   def png_init_io(png_ptr: png_structrp, fp: png_FILE_p): Unit                                   = extern
   def png_get_rowbytes(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32     = extern
   def png_get_channels(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte        = extern

@@ -139,11 +139,13 @@ package object libpng {
       case 8 =>
         if (lib.png_sig_cmp(header, 0.toUInt, 8.toUInt) != 0) {
           Console.err.println(s"open: can't recognize PNG signature for file '$path'")
+          fclose(file)
           return None
         }
       case _ =>
         Console.err.println(
           if (ferror(file) != 0) s"open: error reading file '$path'" else s"open: '$path' not a PNG file")
+        fclose(file)
         return None
     }
 
