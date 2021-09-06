@@ -4,6 +4,7 @@ import io.github.edadma.libpng.extern.{LibPNG => lib}
 
 import scala.collection.mutable
 import scala.scalanative.libc.stdio._
+import scala.scalanative.libc.stdlib._
 import scala.scalanative.unsafe._
 import scala.scalanative.unsigned._
 
@@ -40,7 +41,7 @@ package object libpng {
     def get_image_width(info: Info): Int      = lib.png_get_image_width(ptr, info.ptr).toInt
     def get_image_height(info: Info): Int     = lib.png_get_image_height(ptr, info.ptr).toInt
     def get_bit_depth(info: Info): Int        = lib.png_get_bit_depth(ptr, info.ptr).toInt
-    def get_color_type(info: Info): ColorType = lib.png_get_color_type(ptr, info.ptr)
+    def get_color_type(info: Info): ColorType = lib.png_get_color_type(ptr, info.ptr).toInt
     def get_IHDR(info: Info): (Int, Int, Int, ColorType, Int, Int, Int) = {
       val width              = stackalloc[CUnsignedInt]
       val height             = stackalloc[CUnsignedInt]
@@ -78,14 +79,14 @@ package object libpng {
     def close(): Unit = fclose(fd)
   }
 
-  implicit class ColorType private[libpng] (val typ: lib.png_byte) extends AnyVal
-  lazy val COLOR_TYPE_GRAY: ColorType       = ColorType(lib.PNG_COLOR_TYPE_GRAY)
-  lazy val COLOR_TYPE_PALETTE: ColorType    = ColorType(lib.PNG_COLOR_TYPE_PALETTE)
-  lazy val COLOR_TYPE_RGB: ColorType        = ColorType(lib.PNG_COLOR_TYPE_RGB)
-  lazy val COLOR_TYPE_RGB_ALPHA: ColorType  = ColorType(lib.PNG_COLOR_TYPE_RGB_ALPHA)
-  lazy val COLOR_TYPE_GRAY_ALPHA: ColorType = ColorType(lib.PNG_COLOR_TYPE_GRAY_ALPHA)
-  lazy val COLOR_TYPE_RGBA: ColorType       = ColorType(lib.PNG_COLOR_TYPE_RGBA)
-  lazy val COLOR_TYPE_GA: ColorType         = ColorType(lib.PNG_COLOR_TYPE_GA)
+  implicit class ColorType private[libpng] (val typ: CInt) extends AnyVal
+  lazy val COLOR_TYPE_GRAY: ColorType       = ColorType(lib.png_COLOR_TYPE_GRAY)
+  lazy val COLOR_TYPE_PALETTE: ColorType    = ColorType(lib.png_COLOR_TYPE_PALETTE)
+  lazy val COLOR_TYPE_RGB: ColorType        = ColorType(lib.png_COLOR_TYPE_RGB)
+  lazy val COLOR_TYPE_RGB_ALPHA: ColorType  = ColorType(lib.png_COLOR_TYPE_RGB_ALPHA)
+  lazy val COLOR_TYPE_GRAY_ALPHA: ColorType = ColorType(lib.png_COLOR_TYPE_GRAY_ALPHA)
+  lazy val COLOR_TYPE_RGBA: ColorType       = ColorType(lib.png_COLOR_TYPE_RGBA)
+  lazy val COLOR_TYPE_GA: ColorType         = ColorType(lib.png_COLOR_TYPE_GA)
 
   implicit class ImageFormat private[libpng] (val typ: Int) extends AnyVal
   object ImageFormat {
@@ -115,9 +116,9 @@ package object libpng {
 
   // header macros
 
-  lazy val LIBPNG_VER_STRING: String = fromCString(lib.PNG_LIBPNG_VER_STRING)
+  lazy val LIBPNG_VER_STRING: String = fromCString(lib.png_LIBPNG_VER_STRING)
 
-  lazy val INFO_tRNS: Int = lib.PNG_INFO_tRNS
+  lazy val INFO_tRNS: Int = lib.png_INFO_tRNS
 
   // convenience methods
 
@@ -149,4 +150,66 @@ package object libpng {
     Some(file)
   }
 
+  def read(path: String): PNGImage = {
+    def error(msg: String, file: PNGFile): Nothing = {
+      Console.err.println(msg)
+      file.close()
+      //todo: free structures
+      sys.exit(1)
+    }
+
+    val file = open(path) getOrElse sys.exit(1)
+    val png  = create_read_struct(LIBPNG_VER_STRING) getOrElse error("create_read_struct failed", file)
+    val info = png.create_info_struct getOrElse error("create_info_struct failed", file)
+
+    if (png.setjmp) error(s"error reading image file '$path'", file)
+
+    png.init_io(file)
+    png.set_sig_bytes(8)
+    png.read_info(info)
+
+    val color_type       = png.get_color_type(info)
+    val bit_depth        = png.get_bit_depth(info)
+    val number_of_passes = png.set_interlace_handling
+
+    if (color_type == COLOR_TYPE_PALETTE)
+      png.set_palette_to_rgb()
+
+    if (color_type == COLOR_TYPE_GRAY && bit_depth < 8)
+      png.set_expand_gray_1_2_4_to_8()
+
+    if (png.get_valid(info, INFO_tRNS))
+      png.set_tRNS_to_alpha()
+
+    if (bit_depth == 16)
+      png.set_strip_16()
+    else if (bit_depth < 8)
+      png.set_packing()
+
+    png.read_update_info(info)
+
+    val (width, height, b, c, _, _, _) = png.get_IHDR(info)
+    val format =
+      c match {
+        case `COLOR_TYPE_GRAY`       => ImageFormat.GRAY
+        case `COLOR_TYPE_GRAY_ALPHA` => ImageFormat.GRAY_ALPHA
+        case `COLOR_TYPE_RGB`        => ImageFormat.RGB
+        case `COLOR_TYPE_RGB_ALPHA`  => ImageFormat.RGB_ALPHA
+      }
+
+    val image        = malloc((width * height * format.typ).toULong).asInstanceOf[lib.png_bytep]
+    val row_pointers = malloc(sizeof[lib.png_bytep] * height.toULong).asInstanceOf[lib.png_bytepp]
+
+    for (i <- 0 until height)
+      row_pointers(i) = image + ((height - (i + 1)) * width * format.typ)
+
+    lib.png_read_image(png.ptr, row_pointers)
+    file.close()
+    //todo: free memory
+
+    new PNGImage(image, width, height, format)
+  }
+
 }
+
+// todo: user png_malloc

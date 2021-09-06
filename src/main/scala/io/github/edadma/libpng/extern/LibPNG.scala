@@ -85,18 +85,18 @@ object LibPNG {
 
   // macros
 
-  def PNG_LIBPNG_VER_STRING: CString = extern
+  def png_LIBPNG_VER_STRING: CString = extern
 
   def png_setjmp(png_ptr: png_structrp): CInt = extern
 
-  def PNG_COLOR_TYPE_GRAY: png_byte       = extern
-  def PNG_COLOR_TYPE_PALETTE: png_byte    = extern
-  def PNG_COLOR_TYPE_RGB: png_byte        = extern
-  def PNG_COLOR_TYPE_RGB_ALPHA: png_byte  = extern
-  def PNG_COLOR_TYPE_GRAY_ALPHA: png_byte = extern
-  def PNG_COLOR_TYPE_RGBA: png_byte       = extern
-  def PNG_COLOR_TYPE_GA: png_byte         = extern
+  def png_COLOR_TYPE_GRAY: CInt       = extern
+  def png_COLOR_TYPE_PALETTE: CInt    = extern
+  def png_COLOR_TYPE_RGB: CInt        = extern
+  def png_COLOR_TYPE_RGB_ALPHA: CInt  = extern
+  def png_COLOR_TYPE_GRAY_ALPHA: CInt = extern
+  def png_COLOR_TYPE_RGBA: CInt       = extern
+  def png_COLOR_TYPE_GA: CInt         = extern
 
-  def PNG_INFO_tRNS: Int = extern
+  def png_INFO_tRNS: Int = extern
 
 }
