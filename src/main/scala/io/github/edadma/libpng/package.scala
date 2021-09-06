@@ -204,6 +204,7 @@ package object libpng {
       row_pointers(i) = image + ((height - (i + 1)) * width * format.typ)
 
     lib.png_read_image(png.ptr, row_pointers)
+    println(123)
     file.close()
     //todo: free memory
 
