@@ -8,9 +8,9 @@ import scala.scalanative.unsafe._
 object LibPNG {
 
   type png_byte           = CUnsignedChar
-  type png_bytep          = Ptr[Byte]
+  type png_bytep          = Ptr[png_byte]
   type png_bytepp         = Ptr[png_bytep]
-  type png_const_bytep    = Ptr[Byte]
+  type png_const_bytep    = Ptr[png_byte]
   type png_uint_32        = CUnsignedInt
   type png_struct         = CStruct0
   type png_structp        = Ptr[png_struct]

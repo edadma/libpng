@@ -9,9 +9,9 @@ import scala.scalanative.unsigned._
 
 package object libpng {
 
-  private def copy(src: collection.Seq[Byte], dst: Ptr[Byte], count: UInt): Unit =
+  private def copy(src: collection.Seq[Byte], dst: Ptr[lib.png_byte], count: UInt): Unit =
     for (i <- 0 until count.toInt)
-      dst(i) = src(i)
+      dst(i) = src(i).toUByte
 
   private def copy(src: Ptr[Byte], dst: mutable.Seq[Byte], count: Int): Unit =
     for (i <- 0 until count)
@@ -42,20 +42,53 @@ package object libpng {
     def close(): Unit = fclose(fd)
   }
 
-  implicit class RawImageBuffer private[libpng] (val ptr: Ptr[lib.png_byte]) {
-    def getGray(x: Int, y: Int, width: Int, height: Int): Int = ptr(x + height * (y + 1) * width).toInt & 0xFF
+  implicit class RawImageBuffer private[libpng] (val ptr: lib.png_bytep) {
+    @inline def px(x: Int, y: Int, w: Int, h: Int, format: Int): lib.png_bytep =
+      ptr + x * format + h * (y + 1) * w
+    @inline def pxget(x: Int, y: Int, w: Int, h: Int, format: Int, offset: Int = 0): Int =
+      (!(px(x, y, w, h, format) + offset)).toInt & 0xFF
+    @inline def pxset(x: Int, y: Int, w: Int, h: Int, format: Int, v: Int, offset: Int = 0): Unit =
+      !(px(x, y, w, h, format) + offset) = v.toUByte
 
-    def getGA(x: Int, y: Int, width: Int, height: Int): Int = {
-      val p = ptr + x * 2 + height * (y + 1) * width
+    def getGray(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 1)
+
+    def setGray(x: Int, y: Int, w: Int, h: Int, v: Int): Unit = pxset(x, y, w, h, 1, v)
+
+    def getGA(x: Int, y: Int, w: Int, h: Int): Int = {
+      val p = px(x, y, w, h, 2)
 
       (!p << 8 | p(1)).toInt & 0xFFFF
     }
 
-    def getRGB(x: Int, y: Int, width: Int, height: Int): Int = {
-      val p = ptr + x * 3 + height * (y + 1) * width
+    def getGAGray(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 2)
 
-      (!p << 16 | (p(1) << 8) | p(2)).toInt & 0xFFFFFF
+    def getGAAlpha(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 2, 1)
+
+    def getRGB(x: Int, y: Int, w: Int, h: Int): Int = {
+      val p = px(x, y, w, h, 3)
+
+      (!p << 16 | p(1) << 8 | p(2)).toInt & 0xFFFFFF
     }
+
+    def getRGBRed(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 3)
+
+    def getRGBGreen(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 3, 1)
+
+    def getRGBBlue(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 3, 2)
+
+    def getRGBA(x: Int, y: Int, w: Int, h: Int): Int = {
+      val p = ptr + x * 4 + h * (y + 1) * w
+
+      (!p << 24 | p(1) << 16 | p(2) << 8 | p(3)).toInt
+    }
+
+    def getRGBARed(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 4)
+
+    def getRGBAGreen(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 4, 1)
+
+    def getRGBABlue(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 4, 2)
+
+    def getRGBAAlpha(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 4, 3)
   }
 
   implicit class ColorType private[libpng] (val typ: lib.png_byte) extends AnyVal
@@ -75,7 +108,7 @@ package object libpng {
 
   def sig_cmp(sig: collection.Seq[Byte]): Boolean = {
     val count = sig.length min 8 toUInt
-    val a     = stackalloc[Byte](count)
+    val a     = stackalloc[lib.png_byte](count)
 
     copy(sig, a, count)
     bool(lib.png_sig_cmp(a, 0.toUInt, count.toUInt))
@@ -100,9 +133,9 @@ package object libpng {
         case f => f
       }
 
-    val header = stackalloc[Byte](8)
+    val header = stackalloc[lib.png_byte](8)
 
-    fread(header, sizeof[Byte], 8.toUInt, file).toInt match {
+    fread(header.asInstanceOf[Ptr[Byte]], sizeof[Byte], 8.toUInt, file).toInt match {
       case 8 =>
         if (lib.png_sig_cmp(header, 0.toUInt, 8.toUInt) != 0) {
           Console.err.println(s"open: can't recognize PNG signature for file '$path'")
