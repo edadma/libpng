@@ -39,16 +39,28 @@ object LibPNG {
   def png_get_compression_buffer_size(png_ptr: png_const_structrp): CSize                        = extern
   def png_set_compression_buffer_size(png_ptr: png_const_structrp, size: CSize): Unit            = extern
   def png_create_info_struct(png_ptr: png_const_structrp): png_infop                             = extern
+  def png_write_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                           = extern
   def png_read_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                            = extern
   def png_read_update_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                     = extern
   def png_set_interlace_handling(png_ptr: png_structrp): CInt                                    = extern
   def png_read_image(png_ptr: png_structrp, image: png_bytepp): Unit                             = extern
+  def png_write_image(png_ptr: png_structrp, image: png_bytepp): Unit                            = extern
+  def png_write_end(png_ptr: png_structrp, info_ptr: png_infop): Unit                            = extern
   def png_init_io(png_ptr: png_structrp, fp: png_FILE_p): Unit                                   = extern
   def png_get_channels(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte        = extern
   def png_get_image_width(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32  = extern
   def png_get_image_height(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32 = extern
   def png_get_bit_depth(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte       = extern
   def png_get_color_type(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte      = extern
+  def png_set_IHDR(png_ptr: png_const_structrp,
+                   info_ptr: png_infop,
+                   width: png_uint_32,
+                   height: png_uint_32,
+                   bit_depth: CInt,
+                   color_type: CInt,
+                   interlace_method: CInt,
+                   compression_method: CInt,
+                   filter_method: CInt): Unit = extern
 
   // header macros
 
