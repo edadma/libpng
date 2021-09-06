@@ -3,7 +3,8 @@ import io.github.edadma.libpng.extern.{LibPNG => lib}
 
 import scala.scalanative.unsafe._
 import scala.scalanative.unsigned._
-import scala.scalanative.libc.stdio._
+import scala.scalanative.libc.stdio
+import scala.scalanative.libc.stdlib
 
 object Main extends App {
 
@@ -25,7 +26,7 @@ object Main extends App {
 
   png.read_update_info(info)
 
-  //val row_pointers = (png_bytep *) malloc (sizeof(png_bytep) * height);
+  val row_pointers = stdlib.malloc(sizeof[lib.png_bytep] * height).asInstanceOf[lib.png_bytepp]
 
   file.close()
 
