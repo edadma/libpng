@@ -42,7 +42,7 @@ package object libpng {
     def get_image_height(info: Info): Int     = lib.png_get_image_height(ptr, info.ptr).toInt
     def get_bit_depth(info: Info): Int        = lib.png_get_bit_depth(ptr, info.ptr).toInt
     def get_color_type(info: Info): ColorType = lib.png_get_color_type(ptr, info.ptr).toInt
-    def get_IHDR(info: Info): (Int, Int, Int, ColorType, Int, Int, Int) = {
+    def get_IHDR(info: Info): (Int, Int, Int, Int, ColorType, Int, Int, Int) = {
       val width              = stackalloc[CUnsignedInt]
       val height             = stackalloc[CUnsignedInt]
       val bit_depth          = stackalloc[CInt]
@@ -50,18 +50,18 @@ package object libpng {
       val interlace_method   = stackalloc[CInt]
       val compression_method = stackalloc[CInt]
       val filter_method      = stackalloc[CInt]
+      val res = lib.png_get_IHDR(ptr,
+                                 info.ptr,
+                                 width,
+                                 height,
+                                 bit_depth,
+                                 color_type,
+                                 interlace_method,
+                                 compression_method,
+                                 filter_method)
 
-      lib.png_get_IHDR(ptr,
-                       info.ptr,
-                       width,
-                       height,
-                       bit_depth,
-                       color_type,
-                       interlace_method,
-                       compression_method,
-                       filter_method)
-
-      ((!width).toInt,
+      (res.toInt,
+       (!width).toInt,
        (!height).toInt,
        !bit_depth,
        ColorType(!color_type),
@@ -69,6 +69,23 @@ package object libpng {
        !compression_method,
        !filter_method)
     }
+    def set_IHDR(info: Info,
+                 width: Int,
+                 height: Int,
+                 bit_depth: Int,
+                 color_type: ColorType,
+                 interlace_method: Int,
+                 compression_method: Int,
+                 filter_method: Int): Unit =
+      lib.png_set_IHDR(ptr,
+                       info.ptr,
+                       width.toUInt,
+                       height.toUInt,
+                       bit_depth,
+                       color_type.typ,
+                       interlace_method,
+                       compression_method,
+                       filter_method)
   }
 
   implicit class Info private[libpng] (val ptr: lib.png_infop) extends AnyVal {
@@ -114,6 +131,9 @@ package object libpng {
   def create_read_struct(user_png_ver: String): Option[PNG] =
     Zone(implicit z => Option(lib.png_create_read_struct(toCString(user_png_ver), null, null, null)))
 
+  def create_write_struct(user_png_ver: String): Option[PNG] =
+    Zone(implicit z => Option(lib.png_create_write_struct(toCString(user_png_ver), null, null, null)))
+
   // header macros
 
   lazy val LIBPNG_VER_STRING: String = fromCString(lib.png_LIBPNG_VER_STRING)
@@ -152,10 +172,9 @@ package object libpng {
 
   def read(path: String): PNGImage = {
     def error(msg: String, file: PNGFile): Nothing = {
-      Console.err.println(msg)
       file.close()
       //todo: free structures
-      sys.exit(1)
+      sys.error(msg)
     }
 
     val file = open(path) getOrElse sys.exit(1)
@@ -188,7 +207,8 @@ package object libpng {
 
     png.read_update_info(info)
 
-    val (width, height, _, c, _, _, _) = png.get_IHDR(info)
+    //todo: find out what the result value of png_get_IHDR means
+    val (res, width, height, _, c, _, _, _) = png.get_IHDR(info)
     val format =
       c match {
         case `COLOR_TYPE_GRAY`       => ImageFormat.GRAY
@@ -207,8 +227,47 @@ package object libpng {
     file.close()
     //todo: free memory
 
-    new PNGImage(image, width, height, format)
+    new PNGImage(image, width, height, format, c)
   }
+
+  def write(path: String, image: PNGImage): Unit = Zone { implicit z =>
+    def error(msg: String, file: PNGFile): Nothing = {
+      file.close()
+      //todo: free structures
+      sys.error(msg)
+    }
+
+    val file = fopen(toCString(path), c"w")
+
+    if (file eq null)
+      sys.error(s"open: error opening file '$path'")
+
+    val png  = create_read_struct(LIBPNG_VER_STRING) getOrElse error("create_read_struct failed", file)
+    val info = png.create_info_struct getOrElse error("create_info_struct failed", file)
+
+    if (png.setjmp) error(s"error writing image file '$path'", file)
+
+    png.init_io(file)
+    png.set_IHDR(info, image.width, image.height, 8, image.color_type, 0, 0, 0) //todo: fix last three
+  }
+
+  /*
+  todo
+
+  #define PNG_COMPRESSION_TYPE_BASE 0 /* Deflate method 8, 32K window */
+#define PNG_COMPRESSION_TYPE_DEFAULT PNG_COMPRESSION_TYPE_BASE
+
+/* This is for filter type. PNG 1.0-1.2 only define the single type. */
+#define PNG_FILTER_TYPE_BASE      0 /* Single row per-byte filtering */
+#define PNG_INTRAPIXEL_DIFFERENCING 64 /* Used only in MNG datastreams */
+#define PNG_FILTER_TYPE_DEFAULT   PNG_FILTER_TYPE_BASE
+
+/* These are for the interlacing type.  These values should NOT be changed. */
+#define PNG_INTERLACE_NONE        0 /* Non-interlaced image */
+#define PNG_INTERLACE_ADAM7       1 /* Adam7 interlacing */
+#define PNG_INTERLACE_LAST        2 /* Not a valid value */
+
+ */
 
 }
 

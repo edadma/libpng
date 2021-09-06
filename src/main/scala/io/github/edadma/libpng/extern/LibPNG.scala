@@ -72,7 +72,7 @@ object LibPNG {
                    color_type: Ptr[CInt],
                    interlace_method: Ptr[CInt],
                    compression_method: Ptr[CInt],
-                   filter_method: Ptr[CInt]): Unit = extern //2038
+                   filter_method: Ptr[CInt]): png_uint_32 = extern //2038
   def png_set_IHDR(png_ptr: png_const_structrp,
                    info_ptr: png_infop,
                    width: png_uint_32,
