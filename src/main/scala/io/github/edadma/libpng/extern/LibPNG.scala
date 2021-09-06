@@ -47,6 +47,7 @@ object LibPNG {
   def png_write_image(png_ptr: png_structrp, image: png_bytepp): Unit                            = extern
   def png_write_end(png_ptr: png_structrp, info_ptr: png_infop): Unit                            = extern
   def png_init_io(png_ptr: png_structrp, fp: png_FILE_p): Unit                                   = extern
+  def png_get_rowbytes(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32     = extern
   def png_get_channels(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_byte        = extern
   def png_get_image_width(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32  = extern
   def png_get_image_height(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32 = extern
