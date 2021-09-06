@@ -3,7 +3,7 @@
 
 char* png_LIBPNG_VER_STRING() { return PNG_LIBPNG_VER_STRING; }
 
-int png_setjmp(png_structp png_ptr) { return setjmp(png_jmpbuf(png_ptr); }
+int png_setjmp(png_structp png_ptr) { return setjmp(png_jmpbuf(png_ptr)); }
 
 int png_COLOR_TYPE_GRAY() { return PNG_COLOR_TYPE_GRAY; }
 int png_COLOR_TYPE_PALETTE() { return PNG_COLOR_TYPE_PALETTE; }
