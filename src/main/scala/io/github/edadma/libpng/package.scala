@@ -42,55 +42,6 @@ package object libpng {
     def close(): Unit = fclose(fd)
   }
 
-  implicit class RawImageBuffer private[libpng] (val ptr: lib.png_bytep) {
-    @inline def px(x: Int, y: Int, w: Int, h: Int, format: Int): lib.png_bytep =
-      ptr + x * format + h * (y + 1) * w
-    @inline def pxget(x: Int, y: Int, w: Int, h: Int, format: Int, offset: Int = 0): Int =
-      (!(px(x, y, w, h, format) + offset)).toInt & 0xFF
-    @inline def pxset(x: Int, y: Int, w: Int, h: Int, format: Int, v: Int, offset: Int = 0): Unit =
-      !(px(x, y, w, h, format) + offset) = v.toUByte
-
-    def getGray(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 1)
-
-    def setGray(x: Int, y: Int, w: Int, h: Int, v: Int): Unit = pxset(x, y, w, h, 1, v)
-
-    def getGA(x: Int, y: Int, w: Int, h: Int): Int = {
-      val p = px(x, y, w, h, 2)
-
-      (!p << 8 | p(1)).toInt & 0xFFFF
-    }
-
-    def getGAGray(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 2)
-
-    def getGAAlpha(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 2, 1)
-
-    def getRGB(x: Int, y: Int, w: Int, h: Int): Int = {
-      val p = px(x, y, w, h, 3)
-
-      (!p << 16 | p(1) << 8 | p(2)).toInt & 0xFFFFFF
-    }
-
-    def getRGBRed(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 3)
-
-    def getRGBGreen(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 3, 1)
-
-    def getRGBBlue(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 3, 2)
-
-    def getRGBA(x: Int, y: Int, w: Int, h: Int): Int = {
-      val p = ptr + x * 4 + h * (y + 1) * w
-
-      (!p << 24 | p(1) << 16 | p(2) << 8 | p(3)).toInt
-    }
-
-    def getRGBARed(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 4)
-
-    def getRGBAGreen(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 4, 1)
-
-    def getRGBABlue(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 4, 2)
-
-    def getRGBAAlpha(x: Int, y: Int, w: Int, h: Int): Int = pxget(x, y, w, h, 4, 3)
-  }
-
   implicit class ColorType private[libpng] (val typ: lib.png_byte) extends AnyVal
   lazy val PNG_COLOR_TYPE_GRAY: ColorType       = ColorType(lib.PNG_COLOR_TYPE_GRAY)
   lazy val PNG_COLOR_TYPE_PALETTE: ColorType    = ColorType(lib.PNG_COLOR_TYPE_PALETTE)
@@ -99,6 +50,14 @@ package object libpng {
   lazy val PNG_COLOR_TYPE_GRAY_ALPHA: ColorType = ColorType(lib.PNG_COLOR_TYPE_GRAY_ALPHA)
   lazy val PNG_COLOR_TYPE_RGBA: ColorType       = ColorType(lib.PNG_COLOR_TYPE_RGBA)
   lazy val PNG_COLOR_TYPE_GA: ColorType         = ColorType(lib.PNG_COLOR_TYPE_GA)
+
+  implicit class ImageFormat private[libpng] (val typ: Int) extends AnyVal
+  object ImageFormat {
+    val GRAY: ImageFormat       = ImageFormat(0)
+    val GRAY_ALPHA: ImageFormat = ImageFormat(1)
+    val RGB: ImageFormat        = ImageFormat(2)
+    val RGB_ALPHA: ImageFormat  = ImageFormat(3)
+  }
 
   def access_version_number: String = {
     val v = lib.png_access_version_number.toInt
