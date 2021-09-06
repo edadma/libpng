@@ -44,17 +44,18 @@ object LibPNG {
   def png_write_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                = extern
   def png_read_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                 = extern
 
-  def png_set_expand_gray_1_2_4_to_8(png_ptr: png_structrp): Unit                                            = extern
-  def png_set_palette_to_rgb(png_ptr: png_structrp): Unit                                                    = extern
-  def png_set_tRNS_to_alpha(png_ptr: png_structrp): Unit                                                     = extern
-  def png_set_strip_16(png_ptr: png_structrp): Unit                                                          = extern //1344
-  def png_read_update_info(png_ptr: png_structrp, info_ptr: png_infop): Unit                                 = extern //1390
-  def png_set_packing(png_ptr: png_structrp): Unit                                                           = extern //1285
-  def png_set_interlace_handling(png_ptr: png_structrp): CInt                                                = extern
-  def png_read_image(png_ptr: png_structrp, image: png_bytepp): Unit                                         = extern
-  def png_write_image(png_ptr: png_structrp, image: png_bytepp): Unit                                        = extern
-  def png_write_end(png_ptr: png_structrp, info_ptr: png_infop): Unit                                        = extern
-  def png_destroy_read_struct(png_ptr: png_structpp, info_ptr: png_infopp): Unit                             = extern
+  def png_set_expand_gray_1_2_4_to_8(png_ptr: png_structrp): Unit            = extern //1075
+  def png_set_palette_to_rgb(png_ptr: png_structrp): Unit                    = extern
+  def png_set_tRNS_to_alpha(png_ptr: png_structrp): Unit                     = extern
+  def png_set_strip_16(png_ptr: png_structrp): Unit                          = extern //1344
+  def png_read_update_info(png_ptr: png_structrp, info_ptr: png_infop): Unit = extern //1390
+  def png_set_packing(png_ptr: png_structrp): Unit                           = extern //1285
+  def png_set_interlace_handling(png_ptr: png_structrp): CInt                = extern
+  def png_read_image(png_ptr: png_structrp, image: png_bytepp): Unit         = extern
+  def png_write_image(png_ptr: png_structrp, image: png_bytepp): Unit        = extern
+  def png_write_end(png_ptr: png_structrp, info_ptr: png_infop): Unit        = extern
+  def png_destroy_read_struct(png_ptr_ptr: png_structpp, info_ptr_ptr: png_infopp, end_info_ptr_ptr: png_infopp): Unit =
+    extern
   def png_init_io(png_ptr: png_structrp, fp: png_FILE_p): Unit                                               = extern
   def png_get_valid(png_ptr: png_const_structrp, info_ptr: png_const_inforp, flag: png_uint_32): png_uint_32 = extern
   def png_get_rowbytes(png_ptr: png_const_structrp, info_ptr: png_const_inforp): png_uint_32                 = extern

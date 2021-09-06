@@ -19,14 +19,21 @@ package object libpng {
 
   private def bool(a: CInt): Boolean = if (a == 0) false else true
 
+  private def bool(a: CUnsignedInt): Boolean = if (a == 0.toUInt) false else true
+
   implicit class PNG private[libpng] (val ptr: lib.png_structp) extends AnyVal {
-    def setjmp: Boolean                       = bool(lib.png_setjmp(ptr))
-    def set_sig_bytes(num_bytes: Int): Unit   = lib.png_set_sig_bytes(ptr, num_bytes)
-    def create_info_struct: Option[Info]      = Option(lib.png_create_info_struct(ptr))
-    def read_info(info: Info): Unit           = lib.png_read_info(ptr, info.ptr)
-    def read_update_info(info: Info): Unit    = lib.png_read_update_info(ptr, info.ptr)
-    def set_interlace_handling: Int           = lib.png_set_interlace_handling(ptr)
-    def init_io(file: PNGFILE): Unit          = lib.png_init_io(ptr, file.fd)
+    def setjmp: Boolean                     = bool(lib.png_setjmp(ptr))
+    def set_sig_bytes(num_bytes: Int): Unit = lib.png_set_sig_bytes(ptr, num_bytes)
+    def create_info_struct: Option[Info]    = Option(lib.png_create_info_struct(ptr))
+    def read_info(info: Info): Unit         = lib.png_read_info(ptr, info.ptr)
+    def set_expand_gray_1_2_4_to_8(): Unit  = lib.png_set_expand_gray_1_2_4_to_8(ptr)
+    def set_palette_to_rgb(): Unit          = lib.png_set_palette_to_rgb(ptr)
+
+    def read_update_info(info: Info): Unit        = lib.png_read_update_info(ptr, info.ptr)
+    def set_interlace_handling: Int               = lib.png_set_interlace_handling(ptr)
+    def init_io(file: PNGFile): Unit              = lib.png_init_io(ptr, file.fd)
+    def get_valid(info: Info, flag: Int): Boolean = bool(lib.png_get_valid(ptr, info.ptr, flag.toUInt))
+
     def get_channels(info: Info): Int         = lib.png_get_channels(ptr, info.ptr).toInt
     def get_image_width(info: Info): Int      = lib.png_get_image_width(ptr, info.ptr).toInt
     def get_image_height(info: Info): Int     = lib.png_get_image_height(ptr, info.ptr).toInt
@@ -65,7 +72,7 @@ package object libpng {
     //
   }
 
-  implicit class PNGFILE private[libpng] (val fd: lib.png_FILE_p) extends AnyVal {
+  implicit class PNGFile private[libpng] (val fd: lib.png_FILE_p) extends AnyVal {
     def close(): Unit = fclose(fd)
   }
 
@@ -110,7 +117,7 @@ package object libpng {
 
   // convenience methods
 
-  def open(path: String): Option[PNGFILE] = Zone { implicit z =>
+  def open(path: String): Option[PNGFile] = Zone { implicit z =>
     val file =
       fopen(toCString(path), c"r") match {
         case null =>
