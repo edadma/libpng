@@ -36,12 +36,12 @@ object Main extends App {
       png.set_expand_gray_1_2_4_to_8()
 
     if (png.get_valid(info, INFO_tRNS))
-      png_set_tRNS_to_alpha(png_ptr)
+      png.set_tRNS_to_alpha()
 
     if (bit_depth == 16)
-      png_set_strip_16(png_ptr);
+      png.set_strip_16()
     else if (bit_depth < 8)
-      png_set_packing(png_ptr)
+      png.set_packing()
 
     png.read_update_info(info)
 

@@ -22,14 +22,16 @@ package object libpng {
   private def bool(a: CUnsignedInt): Boolean = if (a == 0.toUInt) false else true
 
   implicit class PNG private[libpng] (val ptr: lib.png_structp) extends AnyVal {
-    def setjmp: Boolean                     = bool(lib.png_setjmp(ptr))
-    def set_sig_bytes(num_bytes: Int): Unit = lib.png_set_sig_bytes(ptr, num_bytes)
-    def create_info_struct: Option[Info]    = Option(lib.png_create_info_struct(ptr))
-    def read_info(info: Info): Unit         = lib.png_read_info(ptr, info.ptr)
-    def set_expand_gray_1_2_4_to_8(): Unit  = lib.png_set_expand_gray_1_2_4_to_8(ptr)
-    def set_palette_to_rgb(): Unit          = lib.png_set_palette_to_rgb(ptr)
-
+    def setjmp: Boolean                           = bool(lib.png_setjmp(ptr))
+    def set_sig_bytes(num_bytes: Int): Unit       = lib.png_set_sig_bytes(ptr, num_bytes)
+    def create_info_struct: Option[Info]          = Option(lib.png_create_info_struct(ptr))
+    def read_info(info: Info): Unit               = lib.png_read_info(ptr, info.ptr)
+    def set_expand_gray_1_2_4_to_8(): Unit        = lib.png_set_expand_gray_1_2_4_to_8(ptr)
+    def set_palette_to_rgb(): Unit                = lib.png_set_palette_to_rgb(ptr)
+    def set_tRNS_to_alpha(): Unit                 = lib.png_set_tRNS_to_alpha(ptr)
+    def set_strip_16(): Unit                      = lib.png_set_strip_16(ptr)
     def read_update_info(info: Info): Unit        = lib.png_read_update_info(ptr, info.ptr)
+    def set_packing(): Unit                       = lib.png_set_packing(ptr)
     def set_interlace_handling: Int               = lib.png_set_interlace_handling(ptr)
     def init_io(file: PNGFile): Unit              = lib.png_init_io(ptr, file.fd)
     def get_valid(info: Info, flag: Int): Boolean = bool(lib.png_get_valid(ptr, info.ptr, flag.toUInt))
@@ -114,6 +116,8 @@ package object libpng {
   // header macros
 
   lazy val LIBPNG_VER_STRING: String = fromCString(lib.PNG_LIBPNG_VER_STRING)
+
+  lazy val INFO_tRNS: Int = lib.PNG_INFO_tRNS
 
   // convenience methods
 
