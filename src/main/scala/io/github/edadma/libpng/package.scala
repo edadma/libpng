@@ -90,10 +90,10 @@ package object libpng {
 
   implicit class ImageFormat private[libpng] (val typ: Int) extends AnyVal
   object ImageFormat {
-    val GRAY: ImageFormat       = ImageFormat(0)
-    val GRAY_ALPHA: ImageFormat = ImageFormat(1)
-    val RGB: ImageFormat        = ImageFormat(2)
-    val RGB_ALPHA: ImageFormat  = ImageFormat(3)
+    val GRAY: ImageFormat       = ImageFormat(1)
+    val GRAY_ALPHA: ImageFormat = ImageFormat(2)
+    val RGB: ImageFormat        = ImageFormat(3)
+    val RGB_ALPHA: ImageFormat  = ImageFormat(4)
   }
 
   def access_version_number: String = {
@@ -188,7 +188,7 @@ package object libpng {
 
     png.read_update_info(info)
 
-    val (width, height, b, c, _, _, _) = png.get_IHDR(info)
+    val (width, height, _, c, _, _, _) = png.get_IHDR(info)
     val format =
       c match {
         case `COLOR_TYPE_GRAY`       => ImageFormat.GRAY
@@ -204,7 +204,6 @@ package object libpng {
       row_pointers(i) = image + ((height - (i + 1)) * width * format.typ)
 
     lib.png_read_image(png.ptr, row_pointers)
-    println(123)
     file.close()
     //todo: free memory
 
