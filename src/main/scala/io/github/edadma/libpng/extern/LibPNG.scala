@@ -63,9 +63,16 @@ object LibPNG {
                    compression_method: CInt,
                    filter_method: CInt): Unit = extern
 
-  // header macros
+  // macros
 
-  @name("png_PNG_LIBPNG_VER_STRING")
-  def PNG_LIBPNG_VER_STRING: CString = extern
+  def PNG_LIBPNG_VER_STRING: CString          = extern
+  def png_setjmp(png_ptr: png_structrp): CInt = extern
+  def PNG_COLOR_TYPE_GRAY: png_byte           = extern
+  def PNG_COLOR_TYPE_PALETTE: png_byte        = extern
+  def PNG_COLOR_TYPE_RGB: png_byte            = extern
+  def PNG_COLOR_TYPE_RGB_ALPHA: png_byte      = extern
+  def PNG_COLOR_TYPE_GRAY_ALPHA: png_byte     = extern
+  def PNG_COLOR_TYPE_RGBA: png_byte           = extern
+  def PNG_COLOR_TYPE_GA: png_byte             = extern
 
 }

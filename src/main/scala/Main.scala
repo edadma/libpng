@@ -7,37 +7,32 @@ import scala.scalanative.libc.stdio._
 
 object Main extends App {
 
-  val file =
-    fopen(c"build.sbt", c"r") match {
-      case null =>
-        println("error opening file")
-        sys.exit(1)
-      case f => f
-    }
+  val file = open("") getOrElse sys.exit(1)
+  val png  = create_read_struct(LIBPNG_VER_STRING) getOrElse sys.exit(1)
 
-  val header = stackalloc[Byte](8)
-
-  fread(header, sizeof[Byte], 8.toUInt, file) match {
-    case 8 =>
-      if (lib.png_sig_cmp(header, 0.toUInt, 8) != 0) {
-        println("bad PNG signature")
-        sys.exit(1)
-      }
-    case _ =>
-      if (ferror(file) != 0)
-        println("error reading file")
-      else
-        println("not a PNG file")
-
-      sys.exit(1)
-  }
-
-  val png = create_read_struct(LIBPNG_VER_STRING)
-
+  if (png.setjmp) error("error during init_io")
   png.init_io(file)
 
-  val info_ptr = png.create_info_struct
+  val info = png.create_info_struct getOrElse error("create_info_struct failed")
 
-  fclose(file)
+  png.set_sig_bytes(8)
+  png.read_info(info)
+
+  val width            = png.get_image_width(info)
+  val height           = png.get_image_height(info)
+  val color_type       = png.get_color_type(info)
+  val bit_depth        = png.get_bit_depth(info)
+  val number_of_passes = png.set_interlace_handling
+
+  png.read_update_info(info)
+
+  //val row_pointers = (png_bytep *) malloc (sizeof(png_bytep) * height);
+
+  file.close()
+
+  def error(msg: String): Nothing = {
+    Console.err.println(msg)
+    sys.exit(1)
+  }
 
 }
