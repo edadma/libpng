@@ -8,7 +8,7 @@ enablePlugins(ScalaNativePlugin)
 
 nativeLinkStubs := true
 
-nativeMode := "release-fast"
+nativeMode := "debug" //release-fast
 
 nativeLinkingOptions := Seq(s"-L${baseDirectory.value}/native-lib")
 
