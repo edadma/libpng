@@ -3,7 +3,7 @@ import io.github.edadma.libpng._
 object Main extends App {
   val image = read("redish.png")
 
-  println(image.width, image.height)
+  write("new.png", image)
 }
 
 // http://zarb.org/~gc/html/libpng.html

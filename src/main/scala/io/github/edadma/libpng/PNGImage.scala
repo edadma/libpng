@@ -5,6 +5,7 @@ import io.github.edadma.libpng.extern.{LibPNG => lib}
 import scala.scalanative.unsigned._
 
 class PNGImage private[libpng] (private[libpng] val ptr: lib.png_bytep,
+                                private[libpng] val row_pointers: lib.png_bytepp,
                                 val width: Int,
                                 val height: Int,
                                 val format: ImageFormat,

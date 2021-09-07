@@ -26,6 +26,7 @@ package object libpng {
     def setjmp: Boolean                           = bool(lib.png_setjmp(ptr))
     def set_sig_bytes(num_bytes: Int): Unit       = lib.png_set_sig_bytes(ptr, num_bytes)
     def create_info_struct: Option[Info]          = Option(lib.png_create_info_struct(ptr))
+    def write_info(info: Info): Unit              = lib.png_write_info(ptr, info.ptr)
     def read_info(info: Info): Unit               = lib.png_read_info(ptr, info.ptr)
     def set_expand_gray_1_2_4_to_8(): Unit        = lib.png_set_expand_gray_1_2_4_to_8(ptr)
     def set_palette_to_rgb(): Unit                = lib.png_set_palette_to_rgb(ptr)
@@ -34,14 +35,14 @@ package object libpng {
     def read_update_info(info: Info): Unit        = lib.png_read_update_info(ptr, info.ptr)
     def set_packing(): Unit                       = lib.png_set_packing(ptr)
     def set_interlace_handling: Int               = lib.png_set_interlace_handling(ptr)
+    def write_end(info: Info): Unit               = lib.png_write_end(ptr, info.ptr)
     def init_io(file: PNGFile): Unit              = lib.png_init_io(ptr, file.fd)
     def get_valid(info: Info, flag: Int): Boolean = bool(lib.png_get_valid(ptr, info.ptr, flag.toUInt))
-
-    def get_channels(info: Info): Int         = lib.png_get_channels(ptr, info.ptr).toInt
-    def get_image_width(info: Info): Int      = lib.png_get_image_width(ptr, info.ptr).toInt
-    def get_image_height(info: Info): Int     = lib.png_get_image_height(ptr, info.ptr).toInt
-    def get_bit_depth(info: Info): Int        = lib.png_get_bit_depth(ptr, info.ptr).toInt
-    def get_color_type(info: Info): ColorType = lib.png_get_color_type(ptr, info.ptr).toInt
+    def get_channels(info: Info): Int             = lib.png_get_channels(ptr, info.ptr).toInt
+    def get_image_width(info: Info): Int          = lib.png_get_image_width(ptr, info.ptr).toInt
+    def get_image_height(info: Info): Int         = lib.png_get_image_height(ptr, info.ptr).toInt
+    def get_bit_depth(info: Info): Int            = lib.png_get_bit_depth(ptr, info.ptr).toInt
+    def get_color_type(info: Info): ColorType     = lib.png_get_color_type(ptr, info.ptr).toInt
     def get_IHDR(info: Info): (Int, Int, Int, Int, ColorType, Int, Int, Int) = {
       val width              = stackalloc[CUnsignedInt]
       val height             = stackalloc[CUnsignedInt]
@@ -225,9 +226,9 @@ package object libpng {
 
     lib.png_read_image(png.ptr, row_pointers)
     file.close()
-    //todo: free memory
+    //todo: free structures
 
-    new PNGImage(image, width, height, format, c)
+    new PNGImage(image, row_pointers, width, height, format, c)
   }
 
   def write(path: String, image: PNGImage): Unit = Zone { implicit z =>
@@ -249,6 +250,10 @@ package object libpng {
 
     png.init_io(file)
     png.set_IHDR(info, image.width, image.height, 8, image.color_type, 0, 0, 0) //todo: fix last three
+    png.write_info(info)
+    lib.png_write_image(png.ptr, image.row_pointers)
+    png.write_end(info)
+    fclose(file)
   }
 
   /*
