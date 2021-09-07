@@ -18,3 +18,5 @@
 
 // http://zarb.org/~gc/html/libpng.html
 // https://cpp.hotexamples.com/examples/-/-/png_destroy_read_struct/cpp-png_destroy_read_struct-function-examples.html
+// https://gist.github.com/niw/5963798
+// https://www.piko3d.net/tutorials/libpng-tutorial-loading-png-files-from-streams/
