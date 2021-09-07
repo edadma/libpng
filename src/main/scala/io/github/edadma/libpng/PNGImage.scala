@@ -10,10 +10,11 @@ class PNGImage private[libpng] (private[libpng] val ptr: lib.png_bytep,
                                 val height: Int,
                                 val format: ImageFormat,
                                 private[libpng] val color_type: ColorType) {
-  @inline def px(x: Int, y: Int): lib.png_bytep                = ptr + x * format.typ + height * (y + 1) * width
-  @inline def pxget(x: Int, y: Int, offset: Int): Int          = (!(px(x, y) + offset)).toInt & 0xFF
-  @inline def pxset(x: Int, y: Int, offset: Int, v: Int): Unit = !(px(x, y) + offset) = v.toUByte
+  @inline def px(x: Int, y: Int): lib.png_bytep                = ptr + x * format.typ + (height - (y + 1)) * width
+  @inline def pxget(x: Int, y: Int, offset: Int): Int          = px(x, y)(offset).toInt & 0xFF
+  @inline def pxset(x: Int, y: Int, offset: Int, v: Int): Unit = px(x, y)(offset) = v.toUByte
 
+  // todo: code destroy(), and free when object is collected
   def getGray(x: Int, y: Int): Int = pxget(x, y, 0)
 
   def setGray(x: Int, y: Int, v: Int): Unit = pxset(x, y, 0, v)

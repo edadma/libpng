@@ -108,10 +108,10 @@ package object libpng {
 
   implicit class ImageFormat private[libpng] (val typ: Int) extends AnyVal
   object ImageFormat {
-    val GRAY: ImageFormat       = ImageFormat(1)
-    val GRAY_ALPHA: ImageFormat = ImageFormat(2)
-    val RGB: ImageFormat        = ImageFormat(3)
-    val RGB_ALPHA: ImageFormat  = ImageFormat(4)
+    val GRAY: ImageFormat = ImageFormat(1)
+    val GA: ImageFormat   = ImageFormat(2)
+    val RGB: ImageFormat  = ImageFormat(3)
+    val RGBA: ImageFormat = ImageFormat(4)
   }
 
   def access_version_number: String = {
@@ -213,9 +213,9 @@ package object libpng {
     val format =
       c match {
         case `COLOR_TYPE_GRAY`       => ImageFormat.GRAY
-        case `COLOR_TYPE_GRAY_ALPHA` => ImageFormat.GRAY_ALPHA
+        case `COLOR_TYPE_GRAY_ALPHA` => ImageFormat.GA
         case `COLOR_TYPE_RGB`        => ImageFormat.RGB
-        case `COLOR_TYPE_RGB_ALPHA`  => ImageFormat.RGB_ALPHA
+        case `COLOR_TYPE_RGB_ALPHA`  => ImageFormat.RGBA
       }
 
     val image        = malloc((width * height * format.typ).toULong).asInstanceOf[lib.png_bytep]
@@ -243,7 +243,7 @@ package object libpng {
     if (file eq null)
       sys.error(s"open: error opening file '$path'")
 
-    val png  = create_read_struct(LIBPNG_VER_STRING) getOrElse error("create_read_struct failed", file)
+    val png  = create_write_struct(LIBPNG_VER_STRING) getOrElse error("create_write_struct failed", file)
     val info = png.create_info_struct getOrElse error("create_info_struct failed", file)
 
     if (png.setjmp) error(s"error writing image file '$path'", file)
