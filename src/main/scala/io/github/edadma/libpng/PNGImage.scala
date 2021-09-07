@@ -10,7 +10,7 @@ class PNGImage private[libpng] (private[libpng] val ptr: lib.png_bytep,
                                 val height: Int,
                                 val format: ImageFormat,
                                 private[libpng] val color_type: ColorType) {
-  @inline def px(x: Int, y: Int): lib.png_bytep                = ptr + x * format.typ + (height - (y + 1)) * width * format.typ
+  @inline def px(x: Int, y: Int): lib.png_bytep                = ptr + (x + (height - (y + 1)) * width) * format.typ
   @inline def pxget(x: Int, y: Int, offset: Int): Int          = px(x, y)(offset).toInt & 0xFF
   @inline def pxset(x: Int, y: Int, offset: Int, v: Int): Unit = px(x, y)(offset) = v.toUByte
 
